@@ -1,4 +1,4 @@
-name: ko Build
+name: Google Artifact Registry KO Build
 description: Allow building OCI containers using KO, specifically for Go Containers
 author: userbradley
 branding:
