@@ -1,0 +1,57 @@
+name: ko Build
+description: Allow building OCI containers using KO, specifically for Go Containers
+author: userbradley
+branding:
+  icon: layers
+  color: blue
+inputs:
+  Googleproject:
+    description: Name of the Google Cloud project that houses your Artifact Registry
+    required: true
+  repository:
+    description: Name of the repository in Artifact Registry
+    required: true
+  image:
+    description: Name of the Image to build
+    required: true
+  directory:
+    description: Location of the directory to build the docker image from
+    required: true
+outputs:
+  imageId:
+    description: "Image ID"
+    value: ${{ steps.sha.outputs.image }}
+runs:
+  using: composite
+  steps:
+    - name: Generate Tag data
+      id: tag
+      shell: bash
+      run: |
+        echo ref=$(echo ${GITHUB_REF_NAME} | cut -f2 -d'/') >> $GITHUB_OUTPUT
+        echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+    - name: Generate image SHA # This has to be done as its own step as we cant access outputs of its self if we used it in the above
+      id: sha
+      shell: sh
+      run: echo "image=europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}:${{steps.tag.outputs.sha}}" >> $GITHUB_OUTPUT
+    - name: Generate Repo name
+      id: repo
+      shell: sh
+      run: echo "repo=europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}" >> $GITHUB_OUTPUT
+    - name: Setup ko
+      uses: ko-build/setup-ko@v0.6
+      env:
+        KO_DOCKER_REPO: ${{ steps.repo.outputs.repo }}
+    - name: KO Build Anything but Main # just adds the `dev` tag
+      if: ${{ github.ref != 'refs/heads/main' }}
+      run: ko build --bare -t ${{steps.tag.outputs.sha}} -t ${{steps.tag.outputs.ref}} -t ${{steps.tag.outputs.ref}}-${{steps.tag.outputs.sha}} -t dev -t latest
+      shell: sh
+      working-directory: ${{ inputs.directory }}
+    - name: KO Build Main branch
+      if: github.ref == 'refs/heads/main'
+      run: ko build --bare -t ${{steps.tag.outputs.sha}} -t ${{steps.tag.outputs.ref}} -t ${{steps.tag.outputs.ref}}-${{steps.tag.outputs.sha}} -t latest
+      shell: sh
+      working-directory: ${{ inputs.directory }}
+    - name: Image ID
+      shell: sh
+      run: echo ${{steps.sha.outputs.image }}
