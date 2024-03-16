@@ -37,7 +37,7 @@ jobs:
           cache-dependency-path: |
             containers/do-the-thing/go.sum
       - name: Ko build
-        uses: userbradley/action-ko-build@v0.0.1
+        uses: userbradley/action-ko-build@v0.0.2
         with:
           repository: example
           googleProject: example-project
