@@ -43,7 +43,7 @@ runs:
       env:
         KO_DOCKER_REPO: ${{ steps.repo.outputs.repo }}
     - name: KO Build Anything but Main # just adds the `dev` tag
-      if: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/test' }}
+      if: ${{ github.ref != 'refs/heads/main' }}
       run: ko build --bare -t ${{steps.tag.outputs.sha}} -t ${{steps.tag.outputs.ref}} -t ${{steps.tag.outputs.ref}}-${{steps.tag.outputs.sha}} -t dev -t latest
       shell: sh
       working-directory: ${{ inputs.directory }}
