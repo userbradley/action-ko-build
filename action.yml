@@ -39,7 +39,7 @@ runs:
       shell: sh
       run: echo "repo=europe-west2-docker.pkg.dev/${{ inputs.googleProject }}/${{ inputs.repository }}/${{ inputs.image}}" >> $GITHUB_OUTPUT
     - name: Setup ko
-      uses: ko-build/setup-ko@v0.6
+      uses: ko-build/setup-ko@v0.7
       env:
         KO_DOCKER_REPO: ${{ steps.repo.outputs.repo }}
     - name: KO Build Anything but Main # just adds the `dev` tag
